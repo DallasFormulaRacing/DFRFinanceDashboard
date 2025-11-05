@@ -44,17 +44,7 @@ export default function Sidebar() {
   // sidebar options with links
   const links: LinkItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    {
-      name: "Purchase Orders",
-      href: "/po",
-      icon: FileText,
-      sublinks: [
-        { name: "Internal Combustion", href: "/po/ic" },
-        { name: "Electric Vehicle", href: "/po/ev" },
-        { name: "Administration", href: "/po/admin" },
-
-      ],
-    },
+    { name: "Purchase Orders", href: "/po", icon: FileText},
     { name: "Cost Centers", href: "/cc", icon: Building2 },
     { name: "Settings", href: "/settings", icon: Settings },
     { name: "Log Out", href: "/login", icon: LogOut },
