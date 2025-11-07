@@ -18,7 +18,11 @@ export default function RootLayout({
       <body className="flex bg-black min-h-screen">
         <Sidebar /> 
         {/* // collapsible="offcanvas" /> */}
-        <main className="flex-1 p-8">{children}</main>
+        <main className="flex-1 p-6 ">
+          <div className="bg-white rounded-2xl shadow-inner border border-white/10 h-[95vh] overflow-y-auto">
+            {children}
+          </div>
+        </main>
       </body>
     </html>
   );
