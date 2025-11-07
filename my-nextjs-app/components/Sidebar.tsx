@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LucideIcon,
+  HandCoins,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -46,6 +47,7 @@ export default function Sidebar() {
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Purchase Orders", href: "/po", icon: FileText},
     { name: "Cost Centers", href: "/cc", icon: Building2 },
+    { name: "Donations", href: "/donations", icon: HandCoins },
     { name: "Settings", href: "/settings", icon: Settings },
     { name: "Log Out", href: "/login", icon: LogOut },
   ];
