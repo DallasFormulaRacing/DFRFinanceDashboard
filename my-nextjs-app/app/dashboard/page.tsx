@@ -12,11 +12,14 @@ import SubteamTable from "./SubteamTable";
 import BarChart from "./charts/BarChart";
 import DonutChart from "./charts/DonutChart";
 
+type Team = "IC" | "EV";
+type SubteamData = { subteam: string; spent: number };
+
 export default function DashboardPage() {
-  const [team, setTeam] = useState("IC");
+  const [team, setTeam] = useState<Team>("IC");
 
   //subteams per team
-  const data = {
+  const data: Record<Team, SubteamData[]> = {
     IC: [
       { subteam: "Manufacturing", spent: 5000 },
       { subteam: "Composites", spent: 3000 },
@@ -41,7 +44,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold text-[black]">Competition Teams</h2>
 
-        <Select value={team} onValueChange={setTeam}>
+        <Select value={team} onValueChange={(val: Team) => setTeam(val)}>
           <SelectTrigger className="w-[250px]">
             <SelectValue placeholder="Select Team" />
           </SelectTrigger>
