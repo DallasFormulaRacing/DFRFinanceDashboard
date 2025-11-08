@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -7,12 +8,12 @@ import {
   LayoutDashboard,
   FileText,
   Building2,
+  Handshake,
   Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,
   LucideIcon,
-  HandCoins,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -43,18 +44,97 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState<boolean>(false);
 
   // sidebar options with links
-  const links: LinkItem[] = [
+  const mainLinks: LinkItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Purchase Orders", href: "/po", icon: FileText},
     { name: "Cost Centers", href: "/cc", icon: Building2 },
-    { name: "Donations", href: "/donations", icon: HandCoins },
+    { name: "Donations", href: "/donations", icon: Handshake},
+  ];
+
+  const secondaryLinks: LinkItem[] = [
     { name: "Settings", href: "/settings", icon: Settings },
     { name: "Log Out", href: "/login", icon: LogOut },
   ];
 
+  const renderLinks = (links: LinkItem[]) => {
+    return links.map(({ name, href, icon: Icon, sublinks }) => {
+      // if sublinks exist for a button: special design w/ DropdownMenu
+      if (sublinks) {
+        return (
+          <DropdownMenu key={name} modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className={`w-full rounded-md text-white transition-colors duration-200 ${
+                  pathname === href || pathname.startsWith(href + "/")
+                    ? "bg-[#ff8c1a] text-black"
+                    : "hover:bg-[#ff8c1a]/90 hover:text-black"
+                } ${
+                  collapsed
+                    ? "p-2 flex justify-center"
+                    : "px-3 py-2 flex justify-start gap-3"
+                }`}
+              >
+                <Icon size={18} />
+                {!collapsed && <span>{name}</span>}
+              </Button>
+            </DropdownMenuTrigger>
+
+            {!collapsed && (
+              <DropdownMenuContent
+                className="bg-black text-white border-none ml-4"
+                align="start"
+              >
+                {sublinks.map((sub) => (
+                  <DropdownMenuItem
+                    key={sub.name}
+                    asChild
+                    className={`hover:bg-[#ff8c1a]/90 hover:text-black focus:bg-[#ff8c1a]/90 focus:text-black ${
+                      pathname === sub.href ? "bg-[#ff8c1a] text-black" : ""
+                    }`}
+                  >
+                    <Link href={sub.href}>{sub.name}</Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            )}
+          </DropdownMenu>
+        );
+      }
+
+      // else, sublinks do not exist: regular button design
+      return (
+        <Button
+          key={name}
+          variant="ghost"
+          asChild
+          className={`w-full rounded-md text-white transition-colors duration-200 ${
+            pathname === href
+              ? "bg-[#ff8c1a] text-black"
+              : "hover:bg-[#ff8c1a]/90 hover:text-black"
+          } ${
+            collapsed
+              ? "p-2 flex justify-center"
+              : "px-3 py-2 flex justify-start gap-3"
+          }`}
+        >
+          <Link
+            href={href}
+            className={`flex items-center ${
+              collapsed ? "justify-center" : "gap-3"
+            }`}
+          >
+            <Icon size={18} />
+            {!collapsed && <span>{name}</span>}
+          </Link>
+        </Button>
+      );
+    });
+  };
+
   return (
     <aside
-      className={`h-screen bg-black text-white flex flex-col p-4 transition-width duration-300 ${
+      className={`h-screen m-3 rounded-2xl bg-black text-white flex flex-col p-4 transition-width duration-300 ${
         collapsed ? "w-16" : "w-64"
       }`}
     >
@@ -75,80 +155,19 @@ export default function Sidebar() {
           {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </Button>
       </div>
+
       <Separator className="mb-4 bg-white/10" />
 
       <nav className="flex flex-col gap-1 flex-1 overflow-y-auto">
-        {links.map(({ name, href, icon: Icon, sublinks }) =>
-          // if sublinks exist for a button: special design w/ DropdownMenu
-          sublinks ? (
-            <DropdownMenu key={name} modal={false}>
-              <DropdownMenuTrigger asChild>
-                {/* main button */}
-                <Button
-                  variant="ghost"
-                  className={`w-full rounded-md text-white transition-colors duration-200 ${
-                    pathname === href || pathname.startsWith(href + "/")
-                      ? "bg-[#ff8c1a] text-black"
-                      : "hover:bg-[#ff8c1a]/90 hover:text-black"
-                  } ${
-                    collapsed
-                      ? "p-2 flex justify-center"
-                      : "px-3 py-2 flex justify-start gap-3"
-                  }`}
-                >
-                  <Icon size={18} />
-                  {!collapsed && <span>{name}</span>}
-                </Button>
-              </DropdownMenuTrigger>
-              {!collapsed && (
-                // sublink "buttons" as dropdown content
-                <DropdownMenuContent
-                  className="bg-black text-white border-none ml-4"
-                  align="start"
-                >
-                  {sublinks.map((sub) => (
-                    <DropdownMenuItem
-                      key={sub.name}
-                      asChild
-                      className={`hover:bg-[#ff8c1a]/90 hover:text-black focus:bg-[#ff8c1a]/90 focus:text-black ${
-                        pathname === sub.href ? "bg-[#ff8c1a] text-black" : ""
-                      }`}
-                    >
-                      <Link href={sub.href}>{sub.name}</Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              )}
-            </DropdownMenu>
-          ) : (
-            // else, sublinks do not exist: regular button design
-            <Button
-              key={name}
-              variant="ghost"
-              asChild
-              className={`w-full rounded-md text-white transition-colors duration-200 ${
-                pathname === href
-                  ? "bg-[#ff8c1a] text-black"
-                  : "hover:bg-[#ff8c1a]/90 hover:text-black"
-              } ${
-                collapsed
-                  ? "p-2 flex justify-center"
-                  : "px-3 py-2 flex justify-start gap-3"
-              }`}
-            >
-              <Link
-                href={href}
-                className={`flex items-center ${
-                  collapsed ? "justify-center" : "gap-3"
-                }`}
-              >
-                <Icon size={18} />
-                {!collapsed && <span>{name}</span>}
-              </Link>
-            </Button>
-          )
-        )}
+        {renderLinks(mainLinks)}
       </nav>
+
+      <Separator className="mb-4 bg-white/10" />
+
+      <nav className="flex flex-col gap-1 pb-14 overflow-y-auto">
+        {renderLinks(secondaryLinks)}
+      </nav>
+      
     </aside>
   );
 }
