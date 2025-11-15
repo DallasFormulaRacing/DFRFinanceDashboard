@@ -8,9 +8,9 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import SubteamTable from "./SubteamTable";
-import BarChart from "./charts/BarChart";
-import DonutChart from "./charts/DonutChart";
+import SubteamTable from "../../components/SubteamTable";
+import BarChart from "../../components/BarChart";
+import DonutChart from "../../components/DonutChart";
 
 type Team = "IC" | "EV";
 type SubteamData = { subteam: string; spent: number };

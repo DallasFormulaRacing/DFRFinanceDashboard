@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import SubteamTable from "./components/SubteamTable";
-import BarChart from "./components/BarChart";
-import DonutChart from "./components/DonutChart";
+import SubteamTable from "@/components/SubteamTable";
+import BarChart from "@/components/BarChart";
+import DonutChart from "@/components/DonutChart";
 
 export default function DashboardPage() {
-  const [team, setTeam] = useState("IC");
+  const [team, setTeam] = useState<"IC" | "EV">("IC");
 
   // Example dummy data for now — connect this to backend or real subteam table later
   const data = {
@@ -33,7 +33,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-blue-600">Competition Team Spendings</h2>
 
-        <Select value={team} onValueChange={setTeam}>
+        <Select value={team} onValueChange={(value) => setTeam(value as "IC" | "EV")}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Team" />
           </SelectTrigger>
