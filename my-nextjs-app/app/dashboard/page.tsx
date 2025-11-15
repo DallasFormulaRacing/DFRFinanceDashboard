@@ -11,12 +11,47 @@ import {
 import SubteamTable from "./SubteamTable";
 import BarChart from "./charts/BarChart";
 import DonutChart from "./charts/DonutChart";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+
 
 type Team = "IC" | "EV";
 type SubteamData = { subteam: string; spent: number };
 
 export default function DashboardPage() {
+
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);  // <-- loading guard
   const [team, setTeam] = useState<Team>("IC");
+
+  /*  The application is always defaulted to return the dashboard.tsx page.
+   *  Before loading dashboard, get user authentification.
+   *  If fail: show log-in page.
+   *  Else: continue to dashboard
+   * 
+   *  TODO:
+   *        - actual authentification
+   */
+
+  // -------- CAN COMMENT OUT UNTIL AUTH IS IMPLEMENTED ------------
+  
+  useEffect(() => {
+    const loggedIn = localStorage.getItem("loggedIn");
+    if (!loggedIn) {
+      router.replace("/login");  // replace to avoid back button
+    } else {
+      setLoading(false);  // allowed to render
+    }
+  }, [router]);
+
+  if (loading) {
+    return <LoadingSpinner />;    return null; 
+  }
+
+  // ---------------------------------------------------------------
+
+  // const [team, setTeam] = useState<Team>("IC");
 
   //subteams per team
   const data: Record<Team, SubteamData[]> = {
