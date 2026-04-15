@@ -12,10 +12,13 @@ export async function getDonationsByMonth(): Promise<DonationsByMonth> {
     throw error;
   }
 
-  // Group donations by month
+  // Group donations by month and year
   const donationsByMonth: DonationsByMonth = {};
   (data || []).forEach(d => {
-    const monthName = new Date(d.date).toLocaleString("default", { month: "long" });
+    const rowDate = new Date(d.date);
+    const monthName = rowDate.toLocaleString("default", { month: "long" });
+    const year = rowDate.getFullYear();
+    const monthKey = `${year}-${monthName}`;
 
     const donation: Donation = {
       donor: d.name,
@@ -24,10 +27,10 @@ export async function getDonationsByMonth(): Promise<DonationsByMonth> {
       comment: d.notes || "",
     };
 
-    if (!donationsByMonth[monthName]) {
-      donationsByMonth[monthName] = [];
+    if (!donationsByMonth[monthKey]) {
+      donationsByMonth[monthKey] = [];
     }
-    donationsByMonth[monthName].push(donation);
+    donationsByMonth[monthKey].push(donation);
   });
 
   return donationsByMonth;
