@@ -22,7 +22,7 @@ type SubteamData = { subteam: string; spent: number };
 export default function DashboardPage() {
 
   const router = useRouter();
-  const [loading, setLoading] = useState(true);  // <-- loading guard
+  // const [loading, setLoading] = useState(true);  // <-- loading guard
   const [team, setTeam] = useState<Team>("IC");
 
   /*  The application is always defaulted to return the dashboard.tsx page.
@@ -36,18 +36,18 @@ export default function DashboardPage() {
 
   // -------- CAN COMMENT OUT UNTIL AUTH IS IMPLEMENTED ------------
   
-  useEffect(() => {
-    const loggedIn = localStorage.getItem("loggedIn");
-    if (!loggedIn) {
-      router.replace("/login");  // replace to avoid back button
-    } else {
-      setLoading(false);  // allowed to render
-    }
-  }, [router]);
+  // useEffect(() => {
+  //   const loggedIn = localStorage.getItem("loggedIn");
+  //   if (!loggedIn) {
+  //     router.replace("/login");  // replace to avoid back button
+  //   } else {
+  //     setLoading(false);  // allowed to render
+  //   }
+  // }, [router]);
 
-  if (loading) {
-    return <LoadingSpinner />;    return null; 
-  }
+  // if (loading) {
+  //   return <LoadingSpinner />;
+  // }
 
   // ---------------------------------------------------------------
 

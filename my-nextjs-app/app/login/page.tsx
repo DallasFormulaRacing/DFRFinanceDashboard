@@ -29,6 +29,7 @@ export default function LoginPage() {
     // Replace with auth logic
     if (data.email === "user@example.com" && data.password === "password") {
       // On success, redirect back to dashboard
+      localStorage.setItem("loggedIn", "true");
       router.push("/dashboard");
     } else {
       // Set error manually (simplest way for example)
