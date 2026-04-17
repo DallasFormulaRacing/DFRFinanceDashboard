@@ -47,7 +47,6 @@ export default function AddPurchaseOrderForm({ subteam, onAdd, onCancel }: AddPu
 
   const handleSubmit = () => {
     if (
-      !newPO.id ||
       !newPO.poNumber ||
       !newPO.date ||
       !newPO.vendor ||
@@ -69,15 +68,7 @@ export default function AddPurchaseOrderForm({ subteam, onAdd, onCancel }: AddPu
       <h2 className="text-lg font-semibold">Add New Purchase Order</h2>
       
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="po-id">PO ID</Label>
-          <Input
-            id="po-id"
-            placeholder="Enter PO ID"
-            value={newPO.id}
-            onChange={(e) => handleInputChange("id", e.target.value)}
-          />
-        </div>
+        {/* ID input removed as it's auto-generated */}
 
         <div className="space-y-2">
           <Label htmlFor="po-number">PO Number</Label>

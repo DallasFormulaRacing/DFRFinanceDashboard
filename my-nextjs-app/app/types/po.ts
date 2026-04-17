@@ -1,10 +1,10 @@
 // types/po.ts
 
-// Status options for a purchase order
-export type POStatus = 'pending' | 'approved' | 'rejected';
+// Status options for a purchase order (relaxed to string to support dynamic DB values)
+export type POStatus = string;
 
 // Team/subteam options
-export type Subteam = 'EV' | 'IC' | 'Admin';
+export type Subteam = 'EV' | 'IC' | 'Admin' | 'F1Tenth';
 
 // Main Purchase Order interface - defines the shape of a PO object
 export interface PurchaseOrder {

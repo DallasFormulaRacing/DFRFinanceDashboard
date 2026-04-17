@@ -23,6 +23,7 @@ export default function PurchaseOrdersPage() {
             <SelectItem value="IC">IC</SelectItem>
             <SelectItem value="EV">EV</SelectItem>
             <SelectItem value="Admin">Admin</SelectItem>
+            <SelectItem value="F1Tenth">F1Tenth</SelectItem>
           </SelectContent>
         </Select>
       </div>

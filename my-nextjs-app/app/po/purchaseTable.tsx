@@ -10,33 +10,44 @@ import { PurchaseOrder, POStatus, ColumnDef, Subteam } from "@/app/types/po";
 import { icColumns } from "./ic/columns";
 import { evColumns } from "./ev/columns";
 import { adminColumns } from "./admin/columns";
-import { samplePOs } from "@/lib/poSampleData";
 import AddPurchaseOrderForm from "./AddPurchaseOrder";
+import { supabase } from "@/lib/supabase";
+
+const normalizeSubteam = (value: unknown): Subteam | null => {
+  if (!value || typeof value !== "string") return null;
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "ev") return "EV";
+  if (normalized === "ic") return "IC";
+  if (normalized === "admin") return "Admin";
+  if (normalized === "f1tenth" || normalized === "f1 tenth") return "F1Tenth";
+
+  return null;
+};
 
 const getStatusVariant = (status: POStatus): "default" | "secondary" | "destructive" | "outline" => {
-  switch (status) {
-    case "pending":
-      return "outline";
-    case "approved":
-      return "default";
-    case "rejected":
-      return "destructive";
-    default:
-      return "default";
-  }
+  const s = (status || "").toLowerCase();
+  if (s.includes("pending") || s.includes("open")) return "outline";
+  if (s.includes("approv") || s.includes("accept")) return "default"; // Covers "approved", "accepted"
+  if (s.includes("reject") || s.includes("deni")) return "destructive"; // Covers "rejected", "denied"
+  
+  return "secondary"; // Default for unknown statuses
 };
 
 const getStatusColor = (status: POStatus): string => {
-  switch (status) {
-    case "pending":
-      return "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-100";
-    case "approved":
-      return "bg-green-100 text-green-800 border-green-300 hover:bg-green-100";
-    case "rejected":
-      return "bg-red-100 text-red-800 border-red-300 hover:bg-red-100";
-    default:
-      return "";
+  const s = (status || "").toLowerCase();
+  
+  if (s.includes("pending") || s.includes("open")) {
+    return "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-100";
   }
+  if (s.includes("approv") || s.includes("accept")) {
+    return "bg-green-100 text-green-800 border-green-300 hover:bg-green-100";
+  }
+  if (s.includes("reject") || s.includes("deni")) {
+    return "bg-red-100 text-red-800 border-red-300 hover:bg-red-100";
+  }
+  
+  return ""; // Default (gray/secondary)
 };
 
 const formatCurrency = (amount: number): string => {
@@ -46,18 +57,23 @@ const formatCurrency = (amount: number): string => {
 const renderCellValue = (po: PurchaseOrder, columnKey: keyof PurchaseOrder) => {
   const value = po[columnKey];
 
+  // if (value === null || value === undefined) return "-"; // Removed this check to allow status logic to run
+
   switch (columnKey) {
     case "unitCost":
     case "totalCost":
       return formatCurrency(value as number);
     case "status":
+      // Use the raw value, defaulting to 'Unknown' if truly missing
+      const statusValue = (value as POStatus) || "Unknown";
       return (
-        <Badge variant={getStatusVariant(value as POStatus)} className={getStatusColor(value as POStatus)}>
-          {String(value).charAt(0).toUpperCase() + String(value).slice(1)}
+        <Badge variant={getStatusVariant(statusValue)} className={getStatusColor(statusValue)}>
+          {statusValue.charAt(0).toUpperCase() + statusValue.slice(1)}
         </Badge>
       );
     default:
-      return value || "-";
+      if (value === null || value === undefined) return "-";
+      return value;
   }
 };
 
@@ -77,6 +93,8 @@ const getColumnsForTeam = (team: string): ColumnDef[] => {
 export default function PurchaseTable({ team }: { team: Subteam }) {
   const [poList, setPoList] = useState<PurchaseOrder[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   
   // Filter states
   const [vendorFilter, setVendorFilter] = useState<string>("");
@@ -85,10 +103,63 @@ export default function PurchaseTable({ team }: { team: Subteam }) {
   const [dateToFilter, setDateToFilter] = useState<string>("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
+  // Fetch data from Supabase
+  const fetchPOs = async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const teamFilter = team;
+      let query = supabase
+        .from('purchase_orders')
+        .select('*')
+        .order('poID', { ascending: false });
+
+      // Keep all team views scoped to their own rows (case-insensitive).
+      query = query.ilike('subteam', teamFilter);
+
+      const { data, error } = await query;
+
+      if (error) {
+        setFetchError(error.message || "Failed to fetch purchase orders.");
+        setPoList([]);
+        console.error("Error fetching POs details:", JSON.stringify(error, null, 2));
+        return;
+      }
+
+      if (data) {
+        console.log("Raw Supabase Data:", data); // Debugging log
+        // Map database columns to our frontend PurchaseOrder interface
+        const mappedData: PurchaseOrder[] = data.map((item: any) => ({
+          subteam: normalizeSubteam(item.subteam) || normalizeSubteam(item.comp) || team,
+          id: String(item.poID), // Convert number ID to string if needed
+          poNumber: item.purchaseNumber || 'N/A',
+          date: item.dateRequested || new Date().toISOString().split('T')[0], // Fallback if null
+          // Prefer new columns, keep legacy fallback for old rows during migration.
+          vendor: item.vendor || 'Unknown Vendor',
+          description: item.description || item.name || 'No Description',
+          category: item.category || 'Uncategorized',
+          quantity: 1, // Missing in DB source, default to 1
+          unitCost: Number(item.amount) || 0,
+          totalCost: Number(item.amount) || 0, // Using amount as total cost since qty is unknown
+          requestedBy: 'Unknown', // Missing in DB source
+          status: (item.status || 'pending') as POStatus, // Use DB status or default
+          notes: '',
+          expectedDelivery: undefined
+        }));
+        setPoList(mappedData.filter((po) => po.subteam === team));
+      }
+    } catch (err) {
+      setFetchError("Unexpected error while loading purchase orders.");
+      setPoList([]);
+      console.error("Unexpected error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Load initial data when team changes
   useEffect(() => {
-    const filteredPOs = samplePOs.filter((po) => po.subteam === team);
-    setPoList(filteredPOs);
+    fetchPOs();
   }, [team]);
 
   // Get unique vendors and categories for filter dropdowns
@@ -135,9 +206,39 @@ export default function PurchaseTable({ team }: { team: Subteam }) {
   const columns = getColumnsForTeam(team);
   const totalSpend = filteredPOs.reduce((sum, po) => sum + po.totalCost, 0);
 
-  const handleAddPO = (newPO: PurchaseOrder) => {
-    setPoList([newPO, ...poList]);
-    setShowForm(false);
+  const handleAddPO = async (newPO: PurchaseOrder) => {
+    try {
+      // Map domain object back to snake_case DB columns for insertion
+      const { error } = await supabase
+        .from('purchase_orders')
+        .insert({
+          po_number: newPO.poNumber,
+          date: newPO.date,
+          vendor: newPO.vendor,
+          description: newPO.description,
+          category: newPO.category,
+          quantity: newPO.quantity,
+          unit_cost: newPO.unitCost,
+          // total_cost is generated but we can pass it if we want to override or if DB expects it. It's stored/generated.
+          requested_by: newPO.requestedBy,
+          status: newPO.status,
+          subteam: newPO.subteam,
+          notes: newPO.notes, 
+          expected_delivery: newPO.expectedDelivery
+        });
+
+      if (error) {
+        console.error("Error adding PO:", error);
+        alert("Failed to add PO: " + error.message);
+        return;
+      }
+      
+      // Refresh list
+      setShowForm(false);
+      fetchPOs();
+    } catch (err) {
+      console.error("Error adding PO:", err);
+    }
   };
 
   const handleClearFilters = () => {
@@ -172,6 +273,12 @@ export default function PurchaseTable({ team }: { team: Subteam }) {
       </div>
 
       {showForm && <AddPurchaseOrderForm subteam={team} onAdd={handleAddPO} onCancel={() => setShowForm(false)} />}
+
+      {fetchError && (
+        <div className="border border-red-300 bg-red-50 text-red-700 rounded-lg p-3 text-sm">
+          Failed to load purchase orders: {fetchError}
+        </div>
+      )}
 
       {/* FILTER BAR: filter table by subparameters */}
       <div className="border rounded-lg p-4 bg-card space-y-4">
