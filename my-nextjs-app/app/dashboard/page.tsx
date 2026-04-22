@@ -14,6 +14,10 @@ import { supabase } from "@/lib/supabaseClient";
 import SubteamTable from "./SubteamTable";
 import BarChart from "./charts/BarChart";
 import DonutChart from "./charts/DonutChart";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+
 
 type Team = "IC" | "EV";
 
@@ -23,8 +27,12 @@ type SubteamData = {
 };
 
 export default function DashboardPage() {
+
+  const router = useRouter();
+  // const [loading, setLoading] = useState(true);  // <-- loading guard
   const [team, setTeam] = useState<Team>("IC");
   const [data, setData] = useState<SubteamData[]>([]);
+
 
   useEffect(() => {
     async function fetchData() {
@@ -50,6 +58,54 @@ export default function DashboardPage() {
 
     fetchData();
   }, [team]);
+
+  /*  The application is always defaulted to return the dashboard.tsx page.
+   *  Before loading dashboard, get user authentification.
+   *  If fail: show log-in page.
+   *  Else: continue to dashboard
+   * 
+   *  TODO:
+   *        - actual authentification
+   */
+
+  // -------- CAN COMMENT OUT UNTIL AUTH IS IMPLEMENTED ------------
+  
+  // useEffect(() => {
+  //   const loggedIn = localStorage.getItem("loggedIn");
+  //   if (!loggedIn) {
+  //     router.replace("/login");  // replace to avoid back button
+  //   } else {
+  //     setLoading(false);  // allowed to render
+  //   }
+  // }, [router]);
+
+  // if (loading) {
+  //   return <LoadingSpinner />;
+  // }
+
+  // ---------------------------------------------------------------
+
+  // const [team, setTeam] = useState<Team>("IC");
+
+  //subteams per team
+  /*const data: Record<Team, SubteamData[]> = {
+    IC: [
+      { subteam: "Manufacturing", spent: 5000 },
+      { subteam: "Composites", spent: 3000 },
+      { subteam: "Software", spent: 4200 },
+      { subteam: "Ergonomics", spent: 2500 },
+      { subteam: "Chassis", spent: 4800 },
+      { subteam: "Aerodynamics", spent: 3500 },
+      { subteam: "Electrical", spent: 3900 },
+    ],
+    EV: [
+      { subteam: "Manufacturing", spent: 4600 },
+      { subteam: "Composites", spent: 3800 },
+      { subteam: "Powertrain", spent: 5200 },
+      { subteam: "Embedded", spent: 4100 },
+      { subteam: "Electrical", spent: 6000 },
+    ],
+  }; */
 
   return (
     <div className="space-y-10">

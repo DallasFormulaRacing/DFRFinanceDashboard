@@ -1,29 +1,12 @@
-// app/po/internal-combustion/page.tsx
 "use client";
 
 import { useState } from "react";
 import { MoreHorizontal, DollarSign } from "lucide-react";
+import { donationsByMonth } from "@/lib/donationsSampleData";
+import { Donation, DonationSummaryData } from "@/app/types/donations";
 
-//Donation data by month??
-const donationsByMonth: Record<string, any[]> = {
-  January: [
-    { donor: "Tesla", amount: 15600, time: "12:50 AM, Jan 17, 2025", comment: "EV research" },
-    { donor: "Google", amount: 14000, time: "3:20 PM, Jan 10, 2025", comment: "IC research" },
-    { donor: "Drake", amount: 100000, time: "5:40 PM, Jan 26, 2025", comment: "EV Car" }
-  ],
-  February: [
-    { donor: "Meta", amount: 12500, time: "9:00 AM, Feb 12, 2025", comment: "Car Parts" },
-  ],
-  March: [
-    { donor: "Palantir", amount: 13000, time: "2:10 PM, Mar 5, 2025", comment: "Tech initiative" },
-  ],
-  April: [
-    { donor: "TI Instruments", amount: 9000, time: "10:30 AM, Apr 21, 2025", comment: "Software grant" },
-  ],
-  
-};
-
-const DonationSummary = ({ totalDonations, totalSpent }: { totalDonations: number; totalSpent: number }) => (
+// Reusable summary component
+const DonationSummary = ({ totalDonations, totalSpent }: DonationSummaryData) => (
   <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-8 shadow-sm grid grid-cols-2 gap-4">
     {/* Total Donations */}
     <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-4">
@@ -49,8 +32,8 @@ const DonationSummary = ({ totalDonations, totalSpent }: { totalDonations: numbe
   </div>
 );
 
-//Table
-const DonationTable = ({ data }: { data: any[] }) => (
+// Reusable table component
+const DonationTable = ({ data }: { data: Donation[] }) => (
   <div className="bg-white p-6 mt-6 rounded-xl shadow-md border border-gray-100 overflow-x-auto">
     <div className="flex justify-between items-center mb-4">
       <h2 className="text-xl font-semibold text-gray-900">Donation History</h2>
@@ -73,11 +56,9 @@ const DonationTable = ({ data }: { data: any[] }) => (
           data.map((d, index) => (
             <tr key={index} className="text-gray-800 text-sm hover:bg-gray-50 transition-colors">
               <td className="py-3 px-4 font-medium">{d.donor}</td>
-              <td className="py-3 px-4 font-semibold text-green-600">
-                ${d.amount.toLocaleString()}
-              </td>
+              <td className="py-3 px-4 font-semibold text-green-600">${d.amount.toLocaleString()}</td>
               <td className="py-3 px-4 text-gray-500 text-xs whitespace-nowrap">
-                {d.time}
+                {new Date(d.time).toLocaleString()}
               </td>
               <td className="py-3 px-4 text-gray-500">{d.comment}</td>
             </tr>
@@ -94,7 +75,7 @@ const DonationTable = ({ data }: { data: any[] }) => (
   </div>
 );
 
-//Main page 
+// Main page
 export default function DonationsPage() {
   const today = new Date();
   const currentMonth = today.getMonth();
@@ -106,11 +87,9 @@ export default function DonationsPage() {
   const monthName = new Date(year, month).toLocaleString("default", { month: "long" });
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  //Get the data for the selected month
   const currentData = donationsByMonth[monthName] || [];
-
   const totalDonations = currentData.reduce((sum, d) => sum + d.amount, 0);
-  const totalSpent = Math.round(totalDonations * 0.4); // Example: 40% spent
+  const totalSpent = Math.round(totalDonations * 0.4); // placeholder
 
   return (
     <div className="bg-white min-h-screen p-6">
@@ -122,9 +101,8 @@ export default function DonationsPage() {
         </p>
       </div>
 
-      {/* Date Selectors */}
+      {/* Selectors */}
       <div className="flex gap-4">
-        {/* Month selector */}
         <select
           value={month}
           onChange={(e) => setMonth(parseInt(e.target.value))}
@@ -137,7 +115,6 @@ export default function DonationsPage() {
           ))}
         </select>
 
-        {/* Year selector */}
         <select
           value={year}
           onChange={(e) => setYear(parseInt(e.target.value))}
@@ -158,7 +135,6 @@ export default function DonationsPage() {
         <DonationSummary totalDonations={totalDonations} totalSpent={totalSpent} />
       </div>
 
-      {/* Dynamic Table */}
       <DonationTable data={currentData} />
     </div>
   );
