@@ -1,6 +1,6 @@
-"use client";
+/*"use client";
 
-import { useState, useEffect } from "react";
+
 import {
   Select,
   SelectTrigger,
@@ -17,7 +17,26 @@ import DonutChart from "./charts/DonutChart";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+*/
 
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+
+import { supabase } from "@/lib/supabaseClient";
+
+import SubteamTable from "./SubteamTable";
+import BarChart from "./charts/BarChart";
+import DonutChart from "./charts/DonutChart";
+import { useRouter } from "next/navigation";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 type Team = "IC" | "EV";
 
