@@ -1,3 +1,3 @@
 import { baseColumns } from "../sharedColumns";
 
-export const evColumns = baseColumns;
+export const f1tenthColumns = baseColumns;
