@@ -1,7 +1,7 @@
 // types/po.ts
 
 // Status options for a purchase order (relaxed to string to support dynamic DB values)
-export type POStatus = string;
+export type POStatus = | "pending" | "approved" | "rejected";
 
 // Team/subteam options
 export type Subteam = 'EV' | 'IC' | 'Admin' | 'F1Tenth';
