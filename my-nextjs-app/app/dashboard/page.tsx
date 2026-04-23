@@ -61,7 +61,7 @@ export default function DashboardPage() {
         .eq("competition", team);
 
       if (error) {
-        console.error("Supabase fetch error:", error);
+        console.error("Supabase fetch dashboard error:", error);
         return;
       }
 
