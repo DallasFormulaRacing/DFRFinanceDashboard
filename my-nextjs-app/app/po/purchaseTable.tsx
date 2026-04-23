@@ -110,9 +110,9 @@ export default function PurchaseTable({ team }: { team: Subteam }) {
     try {
       const teamFilter = team;
       let query = supabase
-        .from('purchase_orders')
+        .from('purchase_orders_v2')
         .select('*')
-        .order('poID', { ascending: false });
+        .order('id', { ascending: false });   // poID --> id
 
       // Keep all team views scoped to their own rows (case-insensitive).
       query = query.ilike('subteam', teamFilter);
@@ -130,21 +130,21 @@ export default function PurchaseTable({ team }: { team: Subteam }) {
         console.log("Raw Supabase Data:", data); // Debugging log
         // Map database columns to our frontend PurchaseOrder interface
         const mappedData: PurchaseOrder[] = data.map((item: any) => ({
-          subteam: normalizeSubteam(item.subteam) || normalizeSubteam(item.comp) || team,
-          id: String(item.poID), // Convert number ID to string if needed
-          poNumber: item.purchaseNumber || 'N/A',
-          date: item.dateRequested || new Date().toISOString().split('T')[0], // Fallback if null
-          // Prefer new columns, keep legacy fallback for old rows during migration.
-          vendor: item.vendor || 'Unknown Vendor',
-          description: item.description || item.name || 'No Description',
-          category: item.category || 'Uncategorized',
-          quantity: 1, // Missing in DB source, default to 1
-          unitCost: Number(item.amount) || 0,
-          totalCost: Number(item.amount) || 0, // Using amount as total cost since qty is unknown
-          requestedBy: 'Unknown', // Missing in DB source
-          status: (item.status || 'pending') as POStatus, // Use DB status or default
-          notes: '',
-          expectedDelivery: undefined
+          id: String(item.id ?? item.poID),
+          poNumber: item.po_number,
+          date: item.date,
+          vendor: item.vendor,
+          description: item.description,
+          category: item.category,
+          quantity: item.quantity ?? 1,
+          unitCost: Number(item.unit_cost ?? item.amount ?? 0),
+          totalCost:
+            (Number(item.quantity ?? 1) * Number(item.unit_cost ?? item.amount ?? 0)),
+          requestedBy: item.requested_by,
+          status: (item.status || "pending") as POStatus,
+          subteam: normalizeSubteam(item.subteam) || team,
+          notes: item.notes ?? "",
+          expectedDelivery: item.expected_delivery ?? undefined,
         }));
         setPoList(mappedData.filter((po) => po.subteam === team));
       }
@@ -210,7 +210,7 @@ export default function PurchaseTable({ team }: { team: Subteam }) {
     try {
       // Map domain object back to snake_case DB columns for insertion
       const { error } = await supabase
-        .from('purchase_orders')
+        .from('purchase_orders_v2')
         .insert({
           po_number: newPO.poNumber,
           date: newPO.date,

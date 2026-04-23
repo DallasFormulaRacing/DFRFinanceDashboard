@@ -1,7 +1,7 @@
 -- SQL for Supabase Table matching the interface
 
 -- Create the table
-create table public.purchase_orders (
+create table public.purchase_orders_v2 (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   po_number text not null,
