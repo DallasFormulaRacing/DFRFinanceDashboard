@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Select,
   SelectTrigger,
@@ -8,14 +8,24 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
 import CostCenterTable from "./CostCenterTable";
-import { costCenterData } from "./costCenterData";
+// import { costCenterData } from "./costCenterData";
+import { CostCenter, getAllCostCenters } from "@/services/cc.services";
 
 type Team = "IC" | "EV";
 
 export default function CostCenterPage() {
-  const [team, setTeam] = useState<Team>("IC"); // Default to IC as requested
+  const [team, setTeam] = useState<Team>("IC");
+  const [data, setData] = useState<(CostCenter & { remaining: number })[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const result = await getAllCostCenters(team);
+      setData(result);
+    };
+
+    fetchData();
+  }, [team]);
 
   return (
     <div className="p-6 space-y-10">
@@ -36,10 +46,7 @@ export default function CostCenterPage() {
 
       {/* Cost Center Table */}
       <div className="space-y-6">
-        <Card className="p-6">
-          <h3 className="text-xl font-semibold mb-4 text-black">{team} Team Cost Centers</h3>
-          <CostCenterTable data={costCenterData[team]} teamName={team} />
-        </Card>
+        <CostCenterTable data={data} teamName="IC" />
       </div>
     </div>
   );
