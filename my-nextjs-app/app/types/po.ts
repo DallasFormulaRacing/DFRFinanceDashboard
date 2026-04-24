@@ -1,10 +1,10 @@
 // types/po.ts
 
-// Status options for a purchase order
-export type POStatus = 'pending' | 'approved' | 'rejected';
+// Status options for a purchase order (relaxed to string to support dynamic DB values)
+export type POStatus = | "pending" | "approved" | "rejected";
 
 // Team/subteam options
-export type Subteam = 'EV' | 'IC' | 'Admin';
+export type Subteam = 'EV' | 'IC' | 'Admin' | 'F1Tenth';
 
 // Main Purchase Order interface - defines the shape of a PO object
 export interface PurchaseOrder {
@@ -16,7 +16,6 @@ export interface PurchaseOrder {
   category: string;              // e.g., "Powertrain", "Chassis", "Marketing"
   quantity: number;              // Number of items
   unitCost: number;              // Cost per unit
-  totalCost: number;             // Total cost (quantity × unitCost)
   requestedBy: string;           // Team member who requested it
   status: POStatus;              // Current status of the PO
   subteam: Subteam;             // Which team this belongs to

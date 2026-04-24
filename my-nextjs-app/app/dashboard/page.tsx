@@ -1,6 +1,6 @@
-"use client";
+/*"use client";
 
-import { useState } from "react";
+
 import {
   Select,
   SelectTrigger,
@@ -8,22 +8,75 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+
+import { supabase } from "@/lib/supabaseClient";
+
 import SubteamTable from "./SubteamTable";
 import BarChart from "./charts/BarChart";
 import DonutChart from "./charts/DonutChart";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+*/
 
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+
+import { supabase } from "@/lib/supabaseClient";
+
+import SubteamTable from "./SubteamTable";
+import BarChart from "./charts/BarChart";
+import DonutChart from "./charts/DonutChart";
+import { useRouter } from "next/navigation";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 type Team = "IC" | "EV";
-type SubteamData = { subteam: string; spent: number };
+
+type SubteamData = {
+  subteam: string;
+  spent: number;
+};
 
 export default function DashboardPage() {
 
   const router = useRouter();
-  const [loading, setLoading] = useState(true);  // <-- loading guard
+  // const [loading, setLoading] = useState(true);  // <-- loading guard
   const [team, setTeam] = useState<Team>("IC");
+  const [data, setData] = useState<SubteamData[]>([]);
+
+
+  useEffect(() => {
+    async function fetchData() {
+      const { data, error } = await supabase
+        .from("subteams")
+        .select("name, budget")
+        .eq("competition", team);
+
+      if (error) {
+        console.error("Supabase fetch dashboard error:", error);
+        return;
+      }
+
+      if (data) {
+        const formatted = data.map((row) => ({
+          subteam: row.name,
+          spent: row.budget,
+        }));
+
+        setData(formatted);
+      }
+    }
+
+    fetchData();
+  }, [team]);
 
   /*  The application is always defaulted to return the dashboard.tsx page.
    *  Before loading dashboard, get user authentification.
@@ -36,25 +89,25 @@ export default function DashboardPage() {
 
   // -------- CAN COMMENT OUT UNTIL AUTH IS IMPLEMENTED ------------
   
-  useEffect(() => {
-    const loggedIn = localStorage.getItem("loggedIn");
-    if (!loggedIn) {
-      router.replace("/login");  // replace to avoid back button
-    } else {
-      setLoading(false);  // allowed to render
-    }
-  }, [router]);
+  // useEffect(() => {
+  //   const loggedIn = localStorage.getItem("loggedIn");
+  //   if (!loggedIn) {
+  //     router.replace("/login");  // replace to avoid back button
+  //   } else {
+  //     setLoading(false);  // allowed to render
+  //   }
+  // }, [router]);
 
-  if (loading) {
-    return <LoadingSpinner />;    return null; 
-  }
+  // if (loading) {
+  //   return <LoadingSpinner />;
+  // }
 
   // ---------------------------------------------------------------
 
   // const [team, setTeam] = useState<Team>("IC");
 
   //subteams per team
-  const data: Record<Team, SubteamData[]> = {
+  /*const data: Record<Team, SubteamData[]> = {
     IC: [
       { subteam: "Manufacturing", spent: 5000 },
       { subteam: "Composites", spent: 3000 },
@@ -71,7 +124,7 @@ export default function DashboardPage() {
       { subteam: "Embedded", spent: 4100 },
       { subteam: "Electrical", spent: 6000 },
     ],
-  };
+  }; */
 
   return (
     <div className="space-y-10">
@@ -83,6 +136,7 @@ export default function DashboardPage() {
           <SelectTrigger className="w-[250px]">
             <SelectValue placeholder="Select Team" />
           </SelectTrigger>
+
           <SelectContent>
             <SelectItem value="IC">Internal Combustion (IC)</SelectItem>
             <SelectItem value="EV">Electric Vehicle (EV)</SelectItem>
@@ -91,20 +145,17 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts Section */}
-      {/* Sidebar (donut chart) increased by ~10% */}
       <div className="grid grid-cols-[2.3fr_1.1fr] gap-8 items-start">
-        {/* Wider bar chart */}
-        <BarChart team={team} data={data[team]} />
+        <BarChart team={team} data={data} />
 
-        {/* Right-aligned donut chart */}
         <div className="flex justify-end">
-          <DonutChart team={team} data={data[team]} />
+          <DonutChart team={team} data={data} />
         </div>
       </div>
 
       {/* Subteam table */}
       <div>
-        <SubteamTable team={team} data={data[team]} />
+        <SubteamTable team={team} data={data} />
       </div>
     </div>
   );
