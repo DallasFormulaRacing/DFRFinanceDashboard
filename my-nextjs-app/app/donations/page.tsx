@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MoreHorizontal, DollarSign } from "lucide-react";
-import { donationsByMonth } from "@/lib/donationsSampleData";
+import { getDonationsByMonth } from "@/lib/donationsAPI";
 import { Donation, DonationSummaryData } from "@/app/types/donations";
 
 // Reusable summary component
@@ -47,7 +47,7 @@ const DonationTable = ({ data }: { data: Donation[] }) => (
         <tr className="text-left text-gray-500 text-xs uppercase tracking-wider">
           <th className="py-3 px-4">Donor</th>
           <th className="py-3 px-4">Donation</th>
-          <th className="py-3 px-4">Time</th>
+          <th className="py-3 px-4">Date</th>
           <th className="py-3 px-4">Comment</th>
         </tr>
       </thead>
@@ -58,7 +58,7 @@ const DonationTable = ({ data }: { data: Donation[] }) => (
               <td className="py-3 px-4 font-medium">{d.donor}</td>
               <td className="py-3 px-4 font-semibold text-green-600">${d.amount.toLocaleString()}</td>
               <td className="py-3 px-4 text-gray-500 text-xs whitespace-nowrap">
-                {new Date(d.time).toLocaleString()}
+                {new Date(d.time).toLocaleDateString("en-US")}
               </td>
               <td className="py-3 px-4 text-gray-500">{d.comment}</td>
             </tr>
@@ -83,13 +83,49 @@ export default function DonationsPage() {
 
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(currentYear);
+  const [donationsByMonth, setDonationsByMonth] = useState<Record<string, Donation[]>>({});
+  const [loading, setLoading] = useState(true);
 
   const monthName = new Date(year, month).toLocaleString("default", { month: "long" });
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthKey = `${year}-${monthName}`;
 
-  const currentData = donationsByMonth[monthName] || [];
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadDonations() {
+      try {
+        const result = await getDonationsByMonth();
+        if (mounted) {
+          setDonationsByMonth(result);
+        }
+      } catch (error) {
+        console.error("Failed to load donations:", error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadDonations();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const currentData = donationsByMonth[monthKey] || [];
   const totalDonations = currentData.reduce((sum, d) => sum + d.amount, 0);
   const totalSpent = Math.round(totalDonations * 0.4); // placeholder
+
+  if (loading) {
+    return (
+      <div className="bg-white min-h-screen p-6">
+        <div className="text-gray-700">Loading donations...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white min-h-screen p-6">
