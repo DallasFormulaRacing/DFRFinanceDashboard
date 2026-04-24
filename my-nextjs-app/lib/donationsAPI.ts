@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabase } from "@/lib/supabaseClient";
 import { Donation, DonationsByMonth } from "@/app/types/donations";
 
 export async function getDonationsByMonth(): Promise<DonationsByMonth> {
