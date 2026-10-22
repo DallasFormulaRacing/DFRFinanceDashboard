@@ -16,6 +16,7 @@ export interface PurchaseOrder {
   category: string;              // e.g., "Powertrain", "Chassis", "Marketing"
   quantity: number;              // Number of items
   unitCost: number;              // Cost per unit
+  totalCost: number;             // quantity * unit_cost, according to DB??
   requestedBy: string;           // Team member who requested it
   status: POStatus;              // Current status of the PO
   subteam: Subteam;             // Which team this belongs to
