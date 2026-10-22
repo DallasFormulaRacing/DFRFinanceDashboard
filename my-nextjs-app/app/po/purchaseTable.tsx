@@ -11,7 +11,7 @@ import { icColumns } from "./ic/columns";
 import { evColumns } from "./ev/columns";
 import { adminColumns } from "./admin/columns";
 import AddPurchaseOrderForm from "./AddPurchaseOrder";
-import { supabase } from "@/lib/supabase";
+import { supabase } from '@/lib/supabaseClient'
 
 const normalizeSubteam = (value: unknown): Subteam | null => {
   if (!value || typeof value !== "string") return null;
