@@ -2,6 +2,7 @@ export interface Donation {
   donor: string;
   amount: number;
   time: string;      // ideally use ISO string from DB later
+  status: string;
   comment: string;
 }
 
