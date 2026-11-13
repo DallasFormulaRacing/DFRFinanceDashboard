@@ -4,6 +4,27 @@ import { useEffect, useState } from "react";
 import { MoreHorizontal, DollarSign } from "lucide-react";
 import { getDonationsByMonth } from "@/lib/donationsAPI";
 import { Donation, DonationSummaryData } from "@/app/types/donations";
+import { Badge } from "@/components/ui/badge";
+
+const getStatusColor = (status: string): string => {
+  const normalizedStatus = status.toLowerCase();
+
+  if (normalizedStatus.includes("pending") || normalizedStatus.includes("open")) {
+    return "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-100";
+  }
+  if (
+    normalizedStatus.includes("approv") ||
+    normalizedStatus.includes("accept") ||
+    normalizedStatus.includes("complet")
+  ) {
+    return "bg-green-100 text-green-800 border-green-300 hover:bg-green-100";
+  }
+  if (normalizedStatus.includes("reject") || normalizedStatus.includes("deni")) {
+    return "bg-red-100 text-red-800 border-red-300 hover:bg-red-100";
+  }
+
+  return "";
+};
 
 // Reusable summary component
 const DonationSummary = ({ totalDonations, totalSpent }: DonationSummaryData) => (
@@ -48,6 +69,7 @@ const DonationTable = ({ data }: { data: Donation[] }) => (
           <th className="py-3 px-4">Donor</th>
           <th className="py-3 px-4">Donation</th>
           <th className="py-3 px-4">Date</th>
+          <th className="py-3 px-4">Status</th>
           <th className="py-3 px-4">Comment</th>
         </tr>
       </thead>
@@ -60,12 +82,17 @@ const DonationTable = ({ data }: { data: Donation[] }) => (
               <td className="py-3 px-4 text-gray-500 text-xs whitespace-nowrap">
                 {new Date(d.time).toLocaleDateString("en-US")}
               </td>
+              <td className="py-3 px-4">
+                <Badge className={getStatusColor(d.status)}>
+                  {d.status.charAt(0).toUpperCase() + d.status.slice(1)}
+                </Badge>
+              </td>
               <td className="py-3 px-4 text-gray-500">{d.comment}</td>
             </tr>
           ))
         ) : (
           <tr>
-            <td colSpan={4} className="py-4 text-center text-gray-400 italic">
+            <td colSpan={5} className="py-4 text-center text-gray-400 italic">
               No donations recorded for this month.
             </td>
           </tr>
