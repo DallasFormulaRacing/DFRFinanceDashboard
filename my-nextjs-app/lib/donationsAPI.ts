@@ -5,7 +5,7 @@ export async function getDonationsByMonth(): Promise<DonationsByMonth> {
   const { data, error } = await supabase
     .from("donations")
     .select('name, amount, date, status, notes')
-    .order("date", { ascending: false });
+    .order("date", { ascending: true });
 
   if (error) {
     console.error("Supabase error:", error);
@@ -15,10 +15,8 @@ export async function getDonationsByMonth(): Promise<DonationsByMonth> {
   // Group donations by month and year
   const donationsByMonth: DonationsByMonth = {};
   (data || []).forEach(d => {
-    const rowDate = new Date(d.date);
-    const monthName = rowDate.toLocaleString("default", { month: "long" });
-    const year = rowDate.getFullYear();
-    const monthKey = `${year}-${monthName}`;
+    const datePart = d.date.slice(0, 10);
+    const monthKey = datePart.slice(0, 7);
 
     const donation: Donation = {
       donor: d.name,

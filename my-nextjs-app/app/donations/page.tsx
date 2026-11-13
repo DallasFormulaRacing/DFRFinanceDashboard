@@ -20,6 +20,11 @@ const getStatusColor = (status: string): string => {
   return "";
 };
 
+const formatDonationDate = (time: string): string => {
+  const [year, month, day] = time.slice(0, 10).split("-");
+  return `${month}/${day}/${year}`;
+};
+
 // Reusable summary component
 const DonationSummary = ({ totalDonations, totalSpent }: DonationSummaryData) => (
   <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-8 shadow-sm grid grid-cols-2 gap-4">
@@ -74,7 +79,7 @@ const DonationTable = ({ data }: { data: Donation[] }) => (
               <td className="py-3 px-4 font-medium">{d.donor}</td>
               <td className="py-3 px-4 font-semibold text-green-600">${d.amount.toLocaleString()}</td>
               <td className="py-3 px-4 text-gray-500 text-xs whitespace-nowrap">
-                {new Date(d.time).toLocaleDateString("en-US")}
+                {formatDonationDate(d.time)}
               </td>
               <td className="py-3 px-4">
                 <Badge className={getStatusColor(d.status)}>
@@ -109,7 +114,7 @@ export default function DonationsPage() {
 
   const monthName = new Date(year, month).toLocaleString("default", { month: "long" });
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const monthKey = `${year}-${monthName}`;
+  const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
 
   useEffect(() => {
     let mounted = true;
