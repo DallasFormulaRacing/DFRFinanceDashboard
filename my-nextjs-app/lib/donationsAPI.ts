@@ -4,7 +4,7 @@ import { Donation, DonationsByMonth } from "@/app/types/donations";
 export async function getDonationsByMonth(): Promise<DonationsByMonth> {
   const { data, error } = await supabase
     .from("donations")
-    .select('name, amount, date, notes')
+    .select('name, amount, date, status, notes')
     .order("date", { ascending: false });
 
   if (error) {
@@ -24,6 +24,7 @@ export async function getDonationsByMonth(): Promise<DonationsByMonth> {
       donor: d.name,
       amount: d.amount,
       time: d.date,
+      status: d.status,
       comment: d.notes || "",
     };
 
