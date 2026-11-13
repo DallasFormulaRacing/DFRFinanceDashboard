@@ -7,19 +7,13 @@ import { Donation, DonationSummaryData } from "@/app/types/donations";
 import { Badge } from "@/components/ui/badge";
 
 const getStatusColor = (status: string): string => {
-  const normalizedStatus = status.toLowerCase();
-
-  if (normalizedStatus.includes("pending") || normalizedStatus.includes("open")) {
+  if (status === "Pending") {
     return "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-100";
   }
-  if (
-    normalizedStatus.includes("approv") ||
-    normalizedStatus.includes("accept") ||
-    normalizedStatus.includes("complet")
-  ) {
+  if (status === "Approved" || status === "Completed") {
     return "bg-green-100 text-green-800 border-green-300 hover:bg-green-100";
   }
-  if (normalizedStatus.includes("reject") || normalizedStatus.includes("deni")) {
+  if (status === "Rejected") {
     return "bg-red-100 text-red-800 border-red-300 hover:bg-red-100";
   }
 
