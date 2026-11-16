@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MoreHorizontal, DollarSign } from "lucide-react";
-import { getDonationsByMonth } from "@/lib/donationsAPI";
-import { Donation, DonationSummaryData } from "@/app/types/donations";
+import { Button } from "@/components/ui/button";
+import { addDonation, getDonationsByMonth, parseDonationDate } from "@/lib/donationsAPI";
+import { Donation, DonationSummaryData, NewDonation } from "@/app/types/donations";
+import AddDonationForm from "./AddDonation";
 
 // Reusable summary component
 const DonationSummary = ({ totalDonations, totalSpent }: DonationSummaryData) => (
@@ -58,7 +60,7 @@ const DonationTable = ({ data }: { data: Donation[] }) => (
               <td className="py-3 px-4 font-medium">{d.donor}</td>
               <td className="py-3 px-4 font-semibold text-green-600">${d.amount.toLocaleString()}</td>
               <td className="py-3 px-4 text-gray-500 text-xs whitespace-nowrap">
-                {new Date(d.time).toLocaleDateString("en-US")}
+                {parseDonationDate(d.time).toLocaleDateString("en-US")}
               </td>
               <td className="py-3 px-4 text-gray-500">{d.comment}</td>
             </tr>
@@ -85,35 +87,48 @@ export default function DonationsPage() {
   const [year, setYear] = useState(currentYear);
   const [donationsByMonth, setDonationsByMonth] = useState<Record<string, Donation[]>>({});
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const monthName = new Date(year, month).toLocaleString("default", { month: "long" });
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const monthKey = `${year}-${monthName}`;
 
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadDonations() {
-      try {
-        const result = await getDonationsByMonth();
-        if (mounted) {
-          setDonationsByMonth(result);
-        }
-      } catch (error) {
-        console.error("Failed to load donations:", error);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
+  // Pulled out so we can re-run it after adding a donation
+  const loadDonations = useCallback(async () => {
+    setFetchError(null);
+    try {
+      const result = await getDonationsByMonth();
+      setDonationsByMonth(result);
+    } catch (error) {
+      console.error("Failed to load donations:", error);
+      setFetchError("Failed to load donations.");
+    } finally {
+      setLoading(false);
     }
-
-    loadDonations();
-
-    return () => {
-      mounted = false;
-    };
   }, []);
+
+  useEffect(() => {
+    loadDonations();
+  }, [loadDonations]);
+
+  const handleAddDonation = async (newDonation: NewDonation) => {
+    try {
+      await addDonation(newDonation);
+
+      // Jump the month/year selectors to the month of the new donation
+      // so the treasurer sees the row they just added.
+      const donated = parseDonationDate(newDonation.time);
+      setMonth(donated.getMonth());
+      setYear(donated.getFullYear());
+
+      setShowForm(false);
+      await loadDonations();
+    } catch (err: any) {
+      console.error("Error adding donation:", err);
+      alert("Failed to add donation: " + (err?.message ?? "unknown error"));
+    }
+  };
 
   const currentData = donationsByMonth[monthKey] || [];
   const totalDonations = currentData.reduce((sum, d) => sum + d.amount, 0);
@@ -130,12 +145,29 @@ export default function DonationsPage() {
   return (
     <div className="bg-white min-h-screen p-6">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-black">Donation</h1>
-        <p className="text-sm text-gray-600">
-          01 - {daysInMonth} {monthName}, {year}
-        </p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-black">Donation</h1>
+          <p className="text-sm text-gray-600">
+            01 - {daysInMonth} {monthName}, {year}
+          </p>
+        </div>
+        <Button onClick={() => setShowForm(!showForm)}>
+          {showForm ? "Cancel" : "Add Donation"}
+        </Button>
       </div>
+
+      {showForm && (
+        <div className="mb-6">
+          <AddDonationForm onAdd={handleAddDonation} onCancel={() => setShowForm(false)} />
+        </div>
+      )}
+
+      {fetchError && (
+        <div className="border border-red-300 bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-6">
+          {fetchError}
+        </div>
+      )}
 
       {/* Selectors */}
       <div className="flex gap-4">
